@@ -26,6 +26,14 @@ const UploadPost = async (req, res, next) => {
   });
 };
 
+const getPosts = async (req, res, next) => {
+  try {
+    const data = await POST.find(req.query);
+  } catch (e) {
+    console.log(e);
+  }
+};
+
 module.exports = { UploadPost };
 
 // module.exports = { createUser, userLogin, getUserDetails, updateUserDetails }
