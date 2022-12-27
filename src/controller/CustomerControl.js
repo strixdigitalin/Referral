@@ -1,281 +1,494 @@
+const c_models = require("../model/CustomerModel");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const validator = require("../validator/validator");
+const { generateJWt } = require("../middleware/auth");
 
-const c_models= require('../model/CustomerModel')
-const bcrypt = require('bcrypt')
-const jwt = require('jsonwebtoken')
-const validator= require('../validator/validator')
 const createUser = async function (req, res) {
-
   try {
-      let userDetails = req.body
-      if (!validator.isValidRequestBody(userDetails)) {
-          return res.status(400).send({ status: false, message: "please provide valid user Details" })
-      }
-//firstname
-      if (!validator.isValid(userDetails.firstName)) {
-          return res.status(400).send({ status: false, message: "first name is required" })
-      }
-//lastname
-      if (!validator.isValid(userDetails.lastName)) {
-          return res.status(400).send({ status: false, message: "last name is required" })
-      }
-//mobile
-      if (!validator.isValid(userDetails.mobile)) {
-        return res.status(400).send({ status: false, message: "phone number is required" })
+    let userDetails = req.body;
+    console.log(req.body, "<<<<<this is body");
+    if (!validator.isValidRequestBody(userDetails)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "please provide valid user Details" });
     }
-    if (!(/^(\+\d{1,3}[- ]?)?\d{10}$/).test(userDetails.mobile))
-        return res.status(400).send({ status: false, message: "Phone number must be a valid Indian number." })
+    //firstname
+    if (!validator.isValid(userDetails.firstName)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "first name is required" });
+    }
+    //lastname
+    if (!validator.isValid(userDetails.lastName)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "last name is required" });
+    }
+    //mobile
+    if (!validator.isValid(userDetails.mobile)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "phone number is required" });
+    }
+    if (!/^(\+\d{1,3}[- ]?)?\d{10}$/.test(userDetails.mobile))
+      return res.status(400).send({
+        status: false,
+        message: "Phone number must be a valid a number.",
+      });
 
-    const checkPhoneFromDb = await c_models.findOne({ mobile: userDetails.mobile })
+    const checkPhoneFromDb = await c_models.findOne({
+      mobile: userDetails.mobile,
+    });
 
     if (checkPhoneFromDb) {
-        return res.status(400).send({ status: false, message: `${userDetails.mobile} is already in use, Please try a new phone number.` })
+      return res.status(400).send({
+        status: false,
+        message: `${userDetails.mobile} is already in use, Please try a new phone number.`,
+      });
     }
-//emailId
-      if (!validator.isValid(userDetails.emailId)) {
-          return res.status(400).send({ status: false, message: "Email-ID is required" })
-      }
-
-      if (!/\S+@\S+\.\S+/.test(userDetails.emailId))
-          return res.status(400).send({ status: false, message: "Invalid Email id." })
-
-      const checkEmailFromDb = await c_models.findOne({ emailId: userDetails.emailId })
-
-      if (checkEmailFromDb) {
-          return res.status(400).send({ status: false, message: `emailId is Exists. Please try another email Id.` })
-      }
-
-      if (!validator.isValid(userDetails.city)) {
-          return res.status(400).send({ status: false, message: "city is required" })
-      }
-
-      if(!validator.isValid(userDetails.postcode)) {
-        return res.status(400).send({ status: false, message: "passcode is required" })
-      }
-
-      if(!validator.isValid(userDetails.age)) {
-        return res.status(400).send({ status:false,message:"passcode is required"})
-      }
-      
-
-      
-
-      if (!validator.isValid(userDetails.password)) {
-        return res.status(400).send({ status: false, message: "password is required" })
+    //emailId
+    if (!validator.isValid(userDetails.emailId)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "Email-ID is required" });
     }
-    if (!validator.isValid(userDetails.roll)) {
-      return res.status(400).send({ status: false, message: "roll is required" })
-  }
 
-    if (userDetails.password.length < 8 || userDetails.password.length > 15) {
-      return res.status(400).send({ status: false, message: "Password must be of 8-15 letters." })
-    }//confrom password
-    if(!(userDetails.password.length==userDetails.confirmPassword.length)) {
-      return res.status(400).send({status:false,message:"password not match"})
+    if (!/\S+@\S+\.\S+/.test(userDetails.emailId))
+      return res
+        .status(400)
+        .send({ status: false, message: "Invalid Email id." });
+
+    const checkEmailFromDb = await c_models.findOne({
+      emailId: userDetails.emailId,
+    });
+
+    if (checkEmailFromDb) {
+      return res.status(400).send({
+        status: false,
+        message: `emailId is Exists. Please try another email Id.`,
+      });
     }
-    const hashedPassword = await bcrypt.hash(userDetails.password, 10)
-    userDetails.password = hashedPassword
-    const c_hashedPassword = await bcrypt.hash(userDetails.confirmPassword, 10)
-    userDetails.confirmPassword = c_hashedPassword
-      
 
-      const saveUserInDb = await c_models.create(userDetails);
+    if (!validator.isValid(userDetails.city)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "city is required" });
+    }
 
-      return res.status(201).send({ status: true, message: "user created successfully!!", data: saveUserInDb });
+    if (!validator.isValid(userDetails.postcode)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "passcode is required" });
+    }
 
+    if (!validator.isValid(userDetails.age)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "passcode is required" });
+    }
+
+    if (!validator.isValid(userDetails.password)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "password is required" });
+    }
+    if (!validator.isValid(userDetails.role)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "role is required" });
+    }
+    if (!validator.isValid(userDetails.lat)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "latitude is required" });
+    }
+    if (!validator.isValid(userDetails.long)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "longitude is required" });
+    }
+
+    if (userDetails.password.length < 8) {
+      return res
+        .status(400)
+        .send({ status: false, message: "Password must be of 8-15 letters." });
+    } //confrom password
+
+    const hashedPassword = await bcrypt.hash(userDetails.password, 10);
+    userDetails.password = hashedPassword;
+
+    const coordinates = [
+      parseFloat(userDetails.long),
+      parseFloat(userDetails.lat),
+    ];
+
+    const saveUserInDb = await c_models.create({
+      ...userDetails,
+      location_1: {
+        type: "Point",
+        coordinates,
+      },
+    });
+
+    return res.status(201).send({
+      status: true,
+      message: "user created successfully!!",
+      data: saveUserInDb,
+    });
   } catch (err) {
-
-      return res.status(500).send({ status: false, error: err.message })
-
+    return res.status(500).send({ status: false, error: err.message });
   }
+};
+const createUser2 = async function (req, res) {
+  try {
+    let userDetails = req.body;
+    console.log(req.body, "<<<<<this is body");
+    if (!validator.isValidRequestBody(userDetails)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "please provide valid user Details" });
+    }
+    //firstname
+    if (!validator.isValid(userDetails.firstName)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "first name is required" });
+    }
+    //lastname
+    if (!validator.isValid(userDetails.lastName)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "last name is required" });
+    }
+    //mobile
+    if (!validator.isValid(userDetails.mobile)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "phone number is required" });
+    }
+    if (!/^(\+\d{1,3}[- ]?)?\d{10}$/.test(userDetails.mobile))
+      return res.status(400).send({
+        status: false,
+        message: "Phone number must be a valid a number.",
+      });
 
-}
+    const checkPhoneFromDb = await c_models.findOne({
+      mobile: userDetails.mobile,
+    });
 
+    if (checkPhoneFromDb) {
+      return res.status(400).send({
+        status: false,
+        message: `${userDetails.mobile} is already in use, Please try a new phone number.`,
+      });
+    }
+    //emailId
+    if (!validator.isValid(userDetails.emailId)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "Email-ID is required" });
+    }
 
+    if (!/\S+@\S+\.\S+/.test(userDetails.emailId))
+      return res
+        .status(400)
+        .send({ status: false, message: "Invalid Email id." });
 
+    const checkEmailFromDb = await c_models.findOne({
+      emailId: userDetails.emailId,
+    });
+
+    if (checkEmailFromDb) {
+      return res.status(400).send({
+        status: false,
+        message: `emailId is Exists. Please try another email Id.`,
+      });
+    }
+
+    if (!validator.isValid(userDetails.city)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "city is required" });
+    }
+
+    if (!validator.isValid(userDetails.postcode)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "passcode is required" });
+    }
+
+    if (!validator.isValid(userDetails.age)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "passcode is required" });
+    }
+
+    if (!validator.isValid(userDetails.password)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "password is required" });
+    }
+    if (!validator.isValid(userDetails.role)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "role is required" });
+    }
+
+    if (userDetails.password.length < 8) {
+      return res
+        .status(400)
+        .send({ status: false, message: "Password must be of 8-15 letters." });
+    } //confrom password
+
+    const hashedPassword = await bcrypt.hash(userDetails.password, 10);
+    userDetails.password = hashedPassword;
+
+    const saveUserInDb = await c_models.create(userDetails);
+
+    return res.status(201).send({
+      status: true,
+      message: "user created successfully!!",
+      data: saveUserInDb,
+    });
+  } catch (err) {
+    return res.status(500).send({ status: false, error: err.message });
+  }
+};
 
 /**********************************************************User LogIn************************************************/
 
-
 const userLogin = async function (req, res) {
-
   try {
+    const loginDetails = req.body;
 
-      const loginDetails = req.body;
+    const { emailId, password } = loginDetails;
 
-      const { emailId, password } = loginDetails;
+    if (!validator.isValidRequestBody(loginDetails)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "Please provide login details" });
+    }
 
-      if (!validator.isValidRequestBody(loginDetails)) {
-          return res.status(400).send({ status: false, message: 'Please provide login details' })
-      }
+    if (!validator.isValid(emailId)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "Email-Id is required" });
+    }
 
-      if (!validator.isValid(emailId)) {
-          return res.status(400).send({ status: false, message: 'Email-Id is required' })
-      }
+    if (!validator.isValid(password)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "Password is required" });
+    }
 
+    const userData = await c_models.findOne({ emailId });
 
-      if (!validator.isValid(password)) {
-          return res.status(400).send({ status: false, message: 'Password is required' })
-      }
+    if (!userData) {
+      return res.status(401).send({
+        status: false,
+        message: `Login failed!! Email-Id is incorrect!`,
+      });
+    }
 
-      const userData = await c_models.findOne({ emailId });
+    const checkPassword = await bcrypt.compare(password, userData.password);
 
-      if (!userData) {
-          return res.status(401).send({ status: false, message: `Login failed!! Email-Id is incorrect!` });
-      }
+    if (!checkPassword)
+      return res.status(401).send({
+        status: false,
+        message: `Login failed!! password is incorrect.`,
+      });
+    let userId = userData._id;
+    const token = generateJWt({
+      _id: userData._id,
+      role: userData.role,
+      email: userData.emailId,
+    });
+    const {
+      firstName,
+      lastName,
+      mobile,
+      _id,
+      city,
+      postcode,
+      age,
+      role,
 
-      const checkPassword = await bcrypt.compare(password, userData.password)
+      gender,
+    } = userData;
 
-      if (!checkPassword) return res.status(401).send({ status: false, message: `Login failed!! password is incorrect.` });
-      let userId=userData._id
-      const token = jwt.sign({
-          userId: userId,
-          iat: Math.floor(Date.now() / 1000),
-          exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60
-      }, 'BYRD87KJVUV%^%*CYTC')
+    return res.status(200).send({
+      status: true,
+      message: "LogIn Successful!!",
+      data: {
+        firstName,
+        _id,
+        lastName,
+        mobile,
+        emailId,
+        city,
+        postcode,
+        age,
+        role,
 
-      return res.status(200).send({ status: true, message: "LogIn Successful!!", data: {userId:userId,Token:token} });
+        gender,
 
+        token: token,
+      },
+    });
   } catch (err) {
-
-      return res.status(500).send({ status: false, error: err.message });
-
+    return res.status(500).send({ status: false, error: err.message });
   }
-}
-
-
-
+};
 
 // /****************************************************************Get User Data********************************************/
 
 const getUserDetails = async function (req, res) {
-
   try {
+    const userId = req.params.userId;
+    const userIdFromToken = req.userId;
 
-      const userId = req.params.userId
-      const userIdFromToken = req.userId
+    const findUserDetails = await c_models.find(req.query);
 
-        
-      // res.status(200).send({message:"done"})
-      // return null
-      if (!validator.isValidObjectId(userId)) {
-          return res.status(400).send({ status: false, message: "Invalid userId" })
-      }
+    if (!findUserDetails) {
+      return res
+        .status(404)
+        .send({ status: false, message: "User Not Found!!" });
+    }
 
-      const findUserDetails = await c_models.findById(userId)
+    // if (findUserDetails._id.toString() != userIdFromToken) {
+    //     return res.status(403).send({ status: false, message: "You Are Not Authorized!!" });
+    // }
 
-      if (!findUserDetails) {
-          return res.status(404).send({ status: false, message: "User Not Found!!" })
-      }
+    if (findUserDetails.length == 0) {
+      return res.status(200).send({
+        status: false,
+        message: "Data not found",
+        // data: findUserDetails,
+      });
+    }
 
-      // if (findUserDetails._id.toString() != userIdFromToken) {
-      //     return res.status(403).send({ status: false, message: "You Are Not Authorized!!" });
-      // }
-
-      return res.status(200).send({ status: true, message: "Profile Fetched Successfully!!", data: findUserDetails })
-
+    return res.status(200).send({
+      status: true,
+      message: "Profile Fetched Successfully!!",
+      data: findUserDetails,
+    });
   } catch (err) {
-
-      return res.status(500).send({ status: false, error: err.message })
-
+    return res.status(500).send({ status: false, error: err.message });
   }
-}
+};
+const getUserDetails2 = async function (req, res) {
+  try {
+    const userId = req.params.userId;
+    const userIdFromToken = req.userId;
+    let findUserDetails = [];
 
+    if (req.query.lat && req.query.long) {
+      console.log(req.query);
+      let location_1 = [parseFloat(req.query.long), parseFloat(req.query.lat)];
+      findUserDetails = await c_models.aggregate([
+        {
+          $geoNear: {
+            near: { type: "Point", coordinates: location_1 },
+            distanceField: "dist.calculated",
+            includeLocs: "dist.location",
+            spherical: true,
+            //  maxDistance: 1000,
+          },
+        },
+      ]);
+    } else {
+      findUserDetails = await c_models.find(req.query);
+    }
+
+    if (!findUserDetails) {
+      return res
+        .status(404)
+        .send({ status: false, message: "User Not Found!!" });
+    }
+
+    if (findUserDetails.length == 0) {
+      return res.status(200).send({
+        status: false,
+        message: "Data not found",
+        // data: findUserDetails,
+      });
+    }
+
+    return res.status(200).send({
+      status: true,
+      message: "Profile Fetched Successfully!!",
+      data: findUserDetails,
+    });
+  } catch (err) {
+    return res.status(500).send({ status: false, error: err.message });
+  }
+};
 
 // /************************************************************Update User Details*********************************************/
 
 const updateUserDetails = async function (req, res) {
-
   try {
+    let userDetails = req.body;
+    let userId = req.params.userId;
+    if (userDetails.password) {
+      delete userDetails.password;
+    }
+    if (userDetails._id) {
+      delete userDetails._id;
+    }
 
-      
-      let userDetails = req.body
-      let userId = req.params.userId
-      
-
-      if (!validator.isValidObjectId(userId)) {
-          return res.status(400).send({ status: false, message: "Invalid UserId" })
+    if (!validator.isValidObjectId(userId)) {
+      return res.status(400).send({ status: false, message: "Invalid UserId" });
+    }
+    if (userDetails.emailId) {
+      const checkUserEmail = await c_models.find({
+        emailId: userDetails.emailId,
+      });
+      console.log(checkUserEmail);
+      if (checkUserEmail.length) {
+        res.status(400).send({
+          message: "User already exist with this email.",
+          status: false,
+        });
+        return null;
       }
+    }
 
-      const findUserData = await c_models.findById(userId)
+    let updateProfileDetails = await c_models.findOneAndUpdate(
+      { _id: userId },
+      userDetails,
+      { new: true }
+    );
 
-      if (!findUserData) {
-          return res.status(404).send({ status: false, message: "user not found" })
-      }
-
-
-      let {firstName,lastName,mobile,emailId,city,postcode,age,gender} = userDetails
-
-      
-      if (!validator.isValidRequestBody(userDetails)) {
-          return res.status(400).send({ status: false, message: "Please provide user's details to update." })
-      }
-
-      if (!validator.validString(firstName)) {
-          return res.status(400).send({ status: false, message: 'first name is Required' })
-      }
-
-      if (!validator.validString(lastName)) {
-          return res.status(400).send({ status: false, message: 'last name is Required' })
-      }
-
-      if (!validator.validString(emailId)) {
-          return res.status(400).send({ status: false, message: 'email is Required' })
-      }
-      if (emailId) {
-
-          if (!/\S+@\S+\.\S+/.test(userDetails.emailId))
-              return res.status(400).send({ status: false, message: "Invalid Email id." })
-
-          const checkEmailFromDb = await c_models.findOne({ emailId: userDetails.emailId })
-
-          if (checkEmailFromDb)
-              return res.status(404).send({ status: false, message: `emailId is Exists. Please try another email Id.` })
-      }
-
-
-      if (!validator.validString(mobile)) {
-          return res.status(400).send({ status: false, message: 'phone number is Required' })
-      }
-
-      // if (mobile) {
-      //     if (!(/^(\+\d{1,3}[- ]?)?\d{10}$/).test(userDetails.mobile))
-      //         return res.status(400).send({ status: false, message: "Phone number must be a valid Indian number." })
-
-      //     const checkPhoneFromDb = await c_models.findOne({ phone: userDetails.mobile })
-
-      //     if (checkPhoneFromDb) {
-      //         return res.status(400).send({ status: false, message: `${userDetails.mobile} is already in use, Please try a new phone number.` })
-      //     }
-      // }
-
-
-      
-
-      let updatedData={
-        firstName:firstName,
-        firstName:lastName,
-        emailId:emailId,
-        mobile:mobile,
-        city:city,
-        postcode:postcode,
-        age:age,
-        gender:gender,
-      
-      }
-  
-
-      let updateProfileDetails = await c_models.findOneAndUpdate(
-          { _id: userId },
-            updatedData,
-          { new: true })
-
-      return res.status(200).send({ status: true, msg: "User Update Successful!!", data: updateProfileDetails })
-
+    return res.status(200).send({
+      status: true,
+      msg: "User Update Successful!!",
+      data: updateProfileDetails,
+    });
   } catch (err) {
-      return res.status(500).send({ status: false, error: err.message })
+    return res.status(500).send({ status: false, error: err.message });
   }
-}
+};
 
-module.exports={createUser,userLogin,getUserDetails,updateUserDetails}
+const deleteUser = async (req, res, next) => {
+  const userId = req.params.userId;
+
+  if (!validator.isValidObjectId(userId)) {
+    return res.status(400).send({ status: false, message: "Invalid UserId" });
+  }
+  const deleteIt = await c_models.findByIdAndDelete(userId);
+  return res.status(200).send({ message: "User successfully deleted" });
+};
+
+module.exports = {
+  createUser,
+  userLogin,
+  getUserDetails,
+  createUser2,
+  getUserDetails2,
+  updateUserDetails,
+  deleteUser,
+};
 
 // module.exports = { createUser, userLogin, getUserDetails, updateUserDetails }
