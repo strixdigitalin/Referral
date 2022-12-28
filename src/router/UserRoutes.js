@@ -32,15 +32,19 @@ const upload = multer({
 // const userController=require('../controller/CustomerControl')
 
 router.post("/register", upload.none(), createUser);
-router.post("/signup", createUser2);
-router.post("/login", userLogin);
+router.post("/signup", upload.none(), createUser2);
+router.post("/login", upload.none(), userLogin);
 // router.get("/user", getUserDetails);
-router.get("/user", getUserDetails2);
-router.put("/user/:userId", updateUserDetails);
-router.delete("/user/:userId", deleteUser);
-router.post("/sendotp", SendOtp);
-router.post("/verifyotp", verify);
-router.post("/change-pass", forgotPassword);
+router.get("/user", upload.none(), getUserDetails2);
+router.put(
+  "/user/:userId",
+  upload.fields([{ name: "avatar", maxCount: 1 }]),
+  updateUserDetails
+);
+router.delete("/user/:userId", upload.none(), deleteUser);
+router.post("/sendotp", upload.none(), SendOtp);
+router.post("/verifyotp", upload.none(), verify);
+router.post("/change-pass", upload.none(), forgotPassword);
 
 // app.get("/user/:userId",userAuthentication,getUserDetails)
 

@@ -7,6 +7,7 @@ const {
   deletePost,
 } = require("../controller/PostControl");
 const multer = require("multer");
+const { createOrder, getOrders } = require("../controller/Walletcontroler");
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "./uploads");
@@ -22,13 +23,8 @@ const upload = multer({
   },
 });
 
-router.post(
-  "/upload",
-  upload.fields([{ name: "image", maxCount: 1 }]),
-  UploadPost
-);
-router.get("/get", getPosts);
-router.delete("/delete/:postId", deletePost);
+router.post("/pay", upload.none(), createOrder);
+router.get("/get", upload.none(), getOrders);
 
-const PostRouter = router;
-module.exports = PostRouter;
+const WalletRouter = router;
+module.exports = WalletRouter;

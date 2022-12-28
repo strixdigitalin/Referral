@@ -108,12 +108,14 @@ const createUser = async function (req, res) {
         .status(400)
         .send({ status: false, message: "longitude is required" });
     }
-
-    if (userDetails.password.length < 8) {
-      return res
-        .status(400)
-        .send({ status: false, message: "Password must be of 8-15 letters." });
-    } //confrom password
+    const validatePass = validator.validatePassWord(userDetails.password);
+    if (validatePass == null) {
+      return res.status(200).send({
+        success: false,
+        message:
+          "Password must be 8-16 characters long, must have at least one uppercase, at least one lowercase, at least one digit and at least on special symbol",
+      });
+    }
 
     const hashedPassword = await bcrypt.hash(userDetails.password, 10);
     userDetails.password = hashedPassword;
@@ -240,6 +242,15 @@ const createUser2 = async function (req, res) {
         .status(400)
         .send({ status: false, message: "Password must be of 8-15 letters." });
     } //confrom password
+
+    const validatePass = validator.validatePassWord(userDetails.password);
+    if (validatePass == null) {
+      return res.status(200).send({
+        success: false,
+        message:
+          "Password must be 8-16 characters long, must have at least one uppercase, at least one lowercase, at least one digit and at least on special symbol",
+      });
+    }
 
     const hashedPassword = await bcrypt.hash(userDetails.password, 10);
     userDetails.password = hashedPassword;
@@ -431,6 +442,9 @@ const updateUserDetails = async function (req, res) {
   try {
     let userDetails = req.body;
     let userId = req.params.userId;
+    // const uploadedFile = req.files.avatar[0];
+    // console.log(req.files.avatar);
+
     if (userDetails.password) {
       delete userDetails.password;
     }
@@ -441,6 +455,7 @@ const updateUserDetails = async function (req, res) {
     if (!validator.isValidObjectId(userId)) {
       return res.status(400).send({ status: false, message: "Invalid UserId" });
     }
+
     if (userDetails.emailId) {
       const checkUserEmail = await c_models.find({
         emailId: userDetails.emailId,
@@ -453,6 +468,10 @@ const updateUserDetails = async function (req, res) {
         });
         return null;
       }
+    }
+
+    if (req.files.avatar) {
+      userDetails.avatar = req.files.avatar[0].filename;
     }
 
     let updateProfileDetails = await c_models.findOneAndUpdate(
@@ -481,6 +500,20 @@ const deleteUser = async (req, res, next) => {
   return res.status(200).send({ message: "User successfully deleted" });
 };
 
+const forgetPass = async (req, res, next) => {
+  const { currentPassword, newPassword } = req.body;
+  try {
+    res.status(200).send({
+      success: true,
+      body: { ...req.body },
+      mesage: "Passowrd changes",
+    });
+  } catch (e) {
+    console.log(e);
+    res.status(400).send({ success: false, message: e.message });
+  }
+};
+
 module.exports = {
   createUser,
   userLogin,
@@ -489,6 +522,7 @@ module.exports = {
   getUserDetails2,
   updateUserDetails,
   deleteUser,
+  forgetPass,
 };
 
 // module.exports = { createUser, userLogin, getUserDetails, updateUserDetails }

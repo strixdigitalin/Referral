@@ -38,6 +38,12 @@ const userdata = new mongoose.Schema(
       require: true,
       enum: ["user", "admin", "vendor"],
     },
+    wallet: {
+      type: Number,
+      default: 0,
+
+      // require: true,
+    },
 
     password: {
       type: "String",
@@ -50,6 +56,9 @@ const userdata = new mongoose.Schema(
       type: "String",
     },
     businessAddress: {
+      type: "String",
+    },
+    website: {
       type: "String",
     },
     isEmailVerified: {
@@ -75,7 +84,12 @@ const userdata = new mongoose.Schema(
       type: String,
       enum: ["male", "female", "other"],
     },
+    avatar: {
+      type: String,
+      default: null,
+    },
   },
+
   { timestamps: true }
 );
 userdata.index({ location_1: "2dsphere" });
