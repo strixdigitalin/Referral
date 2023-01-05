@@ -13,9 +13,18 @@ const PostModel = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    userWalletAmount: {
+      type: Number,
+      default: 0,
+    },
     cashBack: {
       type: Number,
       default: 0,
+    },
+    status: {
+      type: String,
+      default: "Pending",
+      enum: ["Pending", "Approved"],
     },
   },
   { timestamps: true }

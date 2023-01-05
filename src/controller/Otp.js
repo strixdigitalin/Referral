@@ -62,14 +62,16 @@ const verify = async (req, res, next) => {
   if (checkOtp[0].otp == otp) {
     // await Otp.find(checkOtp[0]._id);
     const deleteIt = await Otp.findByIdAndDelete(checkOtp[0]._id);
-    await CustomerModel.findOneAndUpdate(
+    const data = await CustomerModel.findOneAndUpdate(
       { emailId },
       { isEmailVerified: true },
       { new: true }
     );
-    res
-      .status(200)
-      .send({ status: true, message: "Email has been successfully verified" });
+    res.status(200).send({
+      status: true,
+      data,
+      message: "Email has been successfully verified",
+    });
   } else {
     res.status(200).send({ status: true, message: "Verification failed" });
   }
