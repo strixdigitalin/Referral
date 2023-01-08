@@ -5,6 +5,8 @@ const {
   UploadPost,
   getPosts,
   deletePost,
+  commentOnPost,
+  LikeUnlike,
 } = require("../controller/PostControl");
 const multer = require("multer");
 const storage = multer.diskStorage({
@@ -28,7 +30,9 @@ router.post(
   UploadPost
 );
 router.get("/get", getPosts);
-router.delete("/delete/:postId", deletePost);
+router.delete("/delete/:postId", upload.none(), deletePost);
+router.post("/comment", upload.none(), commentOnPost);
+router.post("/like-unlike", upload.none(), LikeUnlike);
 
 const PostRouter = router;
 module.exports = PostRouter;

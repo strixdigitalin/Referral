@@ -8,6 +8,19 @@ const PostModel = new mongoose.Schema(
     filePath: String,
     fileName: String,
     title: String,
+    likes: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "user",
+      },
+    ],
+    comments: {
+      text: String,
+      from: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "user",
+      },
+    },
   },
   { timestamps: true }
 );

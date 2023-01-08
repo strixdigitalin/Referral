@@ -34,8 +34,8 @@ const upload = multer({
 router.post("/register", upload.none(), createUser);
 router.post("/signup", upload.none(), createUser2);
 router.post("/login", upload.none(), userLogin);
-// router.get("/user", getUserDetails);
-router.get("/user", upload.none(), getUserDetails2);
+router.get("/user", getUserDetails);
+router.get("/user/near", upload.none(), getUserDetails2);
 router.put(
   "/user/:userId",
   upload.fields([{ name: "avatar", maxCount: 1 }]),

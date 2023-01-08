@@ -44,7 +44,6 @@ const userdata = new mongoose.Schema(
 
       // require: true,
     },
-
     password: {
       type: "String",
       require: true,
@@ -71,7 +70,7 @@ const userdata = new mongoose.Schema(
     long: {
       type: String,
     },
-    post: [],
+    post: [{ type: mongoose.Schema.Types.ObjectId, ref: "post" }],
     location_1: {
       type: {
         type: String,
@@ -84,6 +83,18 @@ const userdata = new mongoose.Schema(
       type: String,
       enum: ["male", "female", "other"],
     },
+    businessName: {
+      type: String,
+    },
+    isGstVerified: {
+      type: Boolean,
+      default: false,
+    },
+    businessDescription: {
+      type: String,
+      default: null,
+    },
+
     avatar: {
       type: String,
       default: null,

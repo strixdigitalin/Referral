@@ -112,6 +112,26 @@ const getOrders = async (req, res, next) => {
   }
 };
 
+const getOrdersStatistic = async (req, res, next) => {
+  try {
+    const data = await Transaction.aggregate([
+      {
+        $group: {
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" },
+            status: "$status",
+          },
+          total_cost_month: { $sum: "$amount" },
+        },
+      },
+    ]);
+    res.status(200).send({ success: true, message: "data", data });
+  } catch (e) {
+    res.status(400).send({ success: false, message: e.message });
+  }
+};
+
 const ApproveOrder = async (req, res, next) => {
   try {
     const id = req.params.id;
@@ -159,4 +179,4 @@ const ApproveOrder = async (req, res, next) => {
   }
 };
 
-module.exports = { createOrder, getOrders, ApproveOrder };
+module.exports = { createOrder, getOrdersStatistic, getOrders, ApproveOrder };

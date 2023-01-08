@@ -7,7 +7,10 @@ const {
   deletePost,
 } = require("../controller/PostControl");
 const multer = require("multer");
-const { getNotifications } = require("../controller/NotificationControl");
+const {
+  getNotifications,
+  updateNotification,
+} = require("../controller/NotificationControl");
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -25,6 +28,7 @@ const upload = multer({
 });
 
 router.get("/get", upload.none(), getNotifications);
+router.post("/update", upload.none(), updateNotification);
 
 const NotificationRouter = router;
 module.exports = NotificationRouter;

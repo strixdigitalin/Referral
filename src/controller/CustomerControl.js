@@ -324,28 +324,50 @@ const userLogin = async function (req, res) {
       postcode,
       age,
       role,
-
+      isEmailVerified,
+      gstNumber,
+      isGstVerified,
+      businessDescription,
       gender,
     } = userData;
+    let sendThis =
+      role == "user"
+        ? {
+            firstName,
+            lastName,
+            mobile,
+            _id,
+            city,
+            postcode,
+            emailId,
+            age,
+            role,
+            isEmailVerified,
+            gender,
+            token: token,
+          }
+        : {
+            firstName,
+            lastName,
+            mobile,
+            _id,
+            city,
+            emailId,
+            postcode,
+            age,
+            role,
+            isEmailVerified,
+            gstNumber,
+            isGstVerified,
+            businessDescription,
+            gender,
+            token: token,
+          };
 
     return res.status(200).send({
       status: true,
       message: "LogIn Successful!!",
-      data: {
-        firstName,
-        _id,
-        lastName,
-        mobile,
-        emailId,
-        city,
-        postcode,
-        age,
-        role,
-
-        gender,
-
-        token: token,
-      },
+      data: sendThis,
     });
   } catch (err) {
     return res.status(500).send({ status: false, error: err.message });
@@ -359,7 +381,7 @@ const getUserDetails = async function (req, res) {
     const userId = req.params.userId;
     const userIdFromToken = req.userId;
 
-    const findUserDetails = await c_models.find(req.query);
+    const findUserDetails = await c_models.find(req.query).populate("post");
 
     if (!findUserDetails) {
       return res
