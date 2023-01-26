@@ -90,6 +90,10 @@ const userdata = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    cashback: {
+      type: Number,
+      default: null,
+    },
     businessDescription: {
       type: String,
       default: null,
@@ -103,7 +107,15 @@ const userdata = new mongoose.Schema(
 
   { timestamps: true }
 );
-userdata.index({ location_1: "2dsphere" });
+userdata.index(
+  { location_1: "2dsphere" },
+  { businessAddress: "text" },
+  { businessName: "text" }
+  // { postcode: "text" }
+);
+// userdata.in({ businessName: "text" });
+// userdata.index({ businessAddress: "text" });
+// userdata.index({ postcode: "text" });
 // userdata.createIndex({ location_1: "2dsphere" });
 // userdata.createIndex({ location_1: "2dsphere" });
 

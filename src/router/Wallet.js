@@ -13,6 +13,7 @@ const {
   ApproveOrder,
   getOrdersStatistic,
 } = require("../controller/Walletcontroler");
+const { verifyVendorRole } = require("../middleware/auth");
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "./uploads");
@@ -31,7 +32,7 @@ const upload = multer({
 router.post("/pay", upload.none(), createOrder);
 router.get("/get", upload.none(), getOrders);
 router.get("/statistic", upload.none(), getOrdersStatistic);
-router.post("/approve/:id", upload.none(), ApproveOrder);
+router.post("/approve/:id", upload.none(), verifyVendorRole, ApproveOrder);
 
 const WalletRouter = router;
 module.exports = WalletRouter;

@@ -2,6 +2,7 @@ const User = require("../model/CustomerModel");
 const Notification = require("../model/Notification");
 const Transaction = require("../model/Transaction");
 const moment = require("moment");
+const { default: mongoose } = require("mongoose");
 const createOrder = async (req, res, next) => {
   try {
     const { from, to, totalAmount, walletAmount, cashback } = req.body;
@@ -30,10 +31,8 @@ const createOrder = async (req, res, next) => {
     }
 
     const user = await User.findById(from);
-
-    if (
-      parseFloat(user.wallet).toFixed(1) < parseFloat(walletAmount).toFixed(1)
-    ) {
+    console.log(user.wallet, walletAmount, "<<< this is wallet amoutn");
+    if (+user.wallet < +walletAmount) {
       return res.status(200).send({
         success: false,
         message: "Insufficient Wallet amount",
@@ -114,11 +113,31 @@ const getOrders = async (req, res, next) => {
 
 const getOrdersStatistic = async (req, res, next) => {
   try {
+    if (!req.query.vendorId) {
+      return res
+        .status(400)
+        .send({ status: false, message: "Query vendorId is required" });
+    }
+    let MatchParameter = {};
+
+    if (req.query.status)
+      MatchParameter = {
+        ...req.query.MatchParameter,
+        status: req.query.status,
+      };
+
     const data = await Transaction.aggregate([
+      {
+        $match: {
+          to: new mongoose.Types.ObjectId(req.query.vendorId),
+          ...MatchParameter,
+        },
+      },
       {
         $group: {
           _id: {
             year: { $year: "$createdAt" },
+
             month: { $month: "$createdAt" },
             status: "$status",
           },

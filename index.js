@@ -28,6 +28,11 @@ mongoose
     console.log(err);
   });
 
+const PostRouter = require("./src/router/Post");
+const WalletRouter = require("./src/router/Wallet");
+const NotificationRouter = require("./src/router/Notification");
+
+// Put these statements before you define any routes.
 var bodyParser = require("body-parser");
 // app.use(forms.array());
 
@@ -36,13 +41,7 @@ app.use(bodyParser.json());
 app.use(express.json({ limit: "50mb" }));
 
 var cors = require("cors");
-const PostRouter = require("./src/router/Post");
-const WalletRouter = require("./src/router/Wallet");
-const NotificationRouter = require("./src/router/Notification");
 app.use(cors({ origin: true, credentials: true }));
-
-// Put these statements before you define any routes.
-
 app.use(function (req, res, next) {
   console.log(req._parsedUrl.path, "----<<<<<<<<<<<Current ");
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -57,6 +56,7 @@ app.use(function (req, res, next) {
   res.setHeader("Access-Control-Allow-Credentials", true);
   next();
 });
+app.use("/static", express.static("uploads"));
 
 app.use("/user", router);
 app.use("/post", PostRouter);

@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 const Users = require("../model/CustomerModel");
 const { JWT_SECRET } = require("../../GlobalConstants");
 
-const userAuthentication = async function (req, res, next) {
+const userAuthentication = async (req, res, next) => {
   try {
     const token = req.headers.authorization;
 
@@ -15,17 +15,17 @@ const userAuthentication = async function (req, res, next) {
 
     let splitToken = token.split(" ");
 
-    let decodeToken = jwt.verify(splitToken[1], "BYRD87KJVUV%^%*CYTC");
+    let decodeToken = jwt.verify(splitToken[1], JWT_SECRET);
 
     if (!decodeToken) {
       return res.status(401).send({ status: false, message: `Invalid Token` });
+    } else {
+      req.userId = decodeToken.userId;
+
+      next();
     }
-
-    req.userId = decodeToken.userId;
-
-    next();
   } catch (err) {
-    res.status(500).send({ status: false, message: err.message });
+    return res.status(500).send({ status: false, message: err.message });
   }
 };
 
@@ -135,19 +135,17 @@ const matchToken = async (req, res, next) => {
 
 const verifyVendorRole = async (req, res, next) => {
   console.log("verify");
-  if (!req.body.emailId) {
-    res.status(400).send({ success: false, message: "Email is required" });
-  }
+
   try {
-    jwt.verify(SplitBearer(req), process.env.JWT_SECRET, (err, decode) => {
+    jwt.verify(SplitBearer(req), JWT_SECRET, (err, decode) => {
       if (err) {
-        res.status(401).send({ success: false, message: "Unauthorized !!!" });
+        res.status(401).send({
+          success: false,
+          message: "Unauthorized !!",
+          error: err.message,
+        });
       } else {
-        if (
-          req.body.emailId == decode.email &&
-          "vendor" == decode.role &&
-          req.body._id == decode._id
-        ) {
+        if ("vendor" == decode.role) {
           console.log(decode, "<<<jwt");
           next();
         } else {
@@ -159,33 +157,34 @@ const verifyVendorRole = async (req, res, next) => {
     });
   } catch (e) {
     console.log(e, "<<<error");
-    res.status(401).send({ success: false, message: "Unauthorized !!!" });
+    res
+      .status(401)
+      .send({ success: false, message: "Unauthorized !!!", error: e.message });
   }
 };
 const verifyAdminRole = async (req, res, next) => {
   console.log("verify");
-  if (!req.body.emailId) {
-    res.status(400).send({ success: false, message: "emailId is required" });
-  }
+  // if (!req.body.emailId) {
+  //   res.status(400).send({ success: false, message: "emailId is required" });
+  // }
   if (!req.body._id) {
-    res
+    return res
       .status(400)
       .send({ success: false, message: "_id (userID) is required" });
   }
   try {
     jwt.verify(SplitBearer(req), JWT_SECRET, (err, decode) => {
       if (err) {
-        res.status(401).send({ success: false, message: "Unauthorized !!!" });
+        return res
+          .status(401)
+          .send({ success: false, message: "Unauthorized !!!" });
       } else {
-        if (
-          req.body.emailId == decode.email &&
-          "admin" == decode.role &&
-          req.body._id == decode._id
-        ) {
+        console.log(decode, "<<<decode");
+        if ("admin" == decode.role) {
           console.log(decode, "<<<jwt");
           next();
         } else {
-          res
+          return res
             .status(401)
             .send({ success: false, message: "Only Admin can access it !!!" });
         }
@@ -193,7 +192,9 @@ const verifyAdminRole = async (req, res, next) => {
     });
   } catch (e) {
     console.log(e, "<<<error");
-    res.status(401).send({ success: false, message: "Unauthorized !!!" });
+    return res
+      .status(401)
+      .send({ success: false, message: "Unauthorized !!!" });
   }
 };
 

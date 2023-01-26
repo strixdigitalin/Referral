@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const validator = require("../validator/validator");
 const { generateJWt } = require("../middleware/auth");
+const { search } = require("../router/UserRoutes");
 
 const createUser = async function (req, res) {
   try {
@@ -46,12 +47,6 @@ const createUser = async function (req, res) {
         status: false,
         message: `${userDetails.mobile} is already in use, Please try a new phone number.`,
       });
-    }
-    //emailId
-    if (!validator.isValid(userDetails.emailId)) {
-      return res
-        .status(400)
-        .send({ status: false, message: "Email-ID is required" });
     }
 
     if (!/\S+@\S+\.\S+/.test(userDetails.emailId))
@@ -416,7 +411,11 @@ const getUserDetails2 = async function (req, res) {
     const userIdFromToken = req.userId;
     let findUserDetails = [];
 
-    if (req.query.lat && req.query.long) {
+    // if (req.query.search) {
+    //   matchField = { ...matchField, $text: { $search: req.query.search } };
+    // }
+
+    if (req.query.lat && req.query.long && !req.query.search) {
       console.log(req.query);
       let location_1 = [parseFloat(req.query.long), parseFloat(req.query.lat)];
       findUserDetails = await c_models.aggregate([
@@ -429,9 +428,41 @@ const getUserDetails2 = async function (req, res) {
             //  maxDistance: 1000,
           },
         },
+
+        {
+          $match: {
+            role: "vendor",
+          },
+        },
+        { $sort: { "dist.calculated": 1 } },
       ]);
     } else {
-      findUserDetails = await c_models.find(req.query);
+      let pipeline = [];
+
+      if (req.query.search) {
+        // matchField = { ...matchField, $text: { $search: req.query.search } };
+        pipeline = [
+          {
+            $search: {
+              index: "search1",
+              text: {
+                query: req.query.search,
+                path: {
+                  wildcard: "*",
+                },
+              },
+            },
+          },
+        ];
+      }
+      pipeline = [
+        ...pipeline,
+        {
+          $match: { role: "vendor" },
+        },
+      ];
+
+      findUserDetails = await c_models.aggregate([...pipeline]);
     }
 
     if (!findUserDetails) {

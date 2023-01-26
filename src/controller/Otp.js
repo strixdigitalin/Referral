@@ -16,10 +16,10 @@ const SendOtp = async (req, res, next) => {
       SendError("emailId", res);
       return null;
     }
-    if (!_id) {
-      SendError("_id (userId)", res);
-      return null;
-    }
+    // if (!_id) {
+    //   SendError("_id (userId)", res);
+    //   return null;
+    // }
     let otp = 78459;
     sendMail(emailId, otp, async (result) => {
       console.log(result);
@@ -49,10 +49,10 @@ const verify = async (req, res, next) => {
     SendError("otp", res);
     return null;
   }
-  if (!_id) {
-    SendError("_id (userID)", res);
-    return null;
-  }
+  // if (!_id) {
+  //   SendError("_id (userID)", res);
+  //   return null;
+  // }
   const checkOtp = await Otp.find({ emailId: emailId });
   if (checkOtp.length == 0) {
     res.status(200).send({ status: true, message: "Data not found" });
